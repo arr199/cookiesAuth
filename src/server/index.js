@@ -2,12 +2,14 @@ import express  from "express"
 import cors from "cors"
 import bcrypt from "bcryptjs"
 import  { v4 }  from "uuid"
-
+import cookieParser from "cookie-parser"
 
 const app = express()
 const PORT = process?.env.PORT ?? 3200
 
-const passwords = {}
+const users = {}
+const sessions = {}
+app.use(cookieParser())
 app.use(express.json())
 app.use(cors({ credentials : true , origin : ["http://localhost:5173"] }))
 
@@ -15,27 +17,26 @@ app.post("/api/signUp" , async (req,res) => {
     const {  name , password   } = await req.body
     //  EMPTY DATA
     if (name.length === 0 || password.length === 0) {
-        return  res.json({ error : "Empty credentials"  , users : Object.values(passwords) }).status(400)
+        return  res.json({ error : "Empty credentials"  , users : Object.values(users) }).status(400)
     }
        // CHECK IF USER EXIST
-    if (passwords[name]) {
-        return res.status(400).json({ error : "User already exists"  , users : Object.values(passwords)})
+    if (users[name]) {
+        return res.status(400).json({ error : "User already exists"  , users : Object.values(users)})
     }
 
     const hashedPassword =  await bcrypt.hash(password, 10 )
-    passwords[name] = ({ name , hashedPassword })
+    users[name] = ({ name , hashedPassword })
 
-    return  res.json({ hashedPassword  , users : Object.values(passwords)   })
-
+    return  res.json({ hashedPassword  , users : Object.values(users)   })
 } )
 
 app.post("/api/login" , async (req, res) => {
     const {  name , password } = req.body
     if (name.length === 0 || password.length === 0) {
-        return  res.json({ error : "Empty credentials"  , users : Object.values(passwords) }).status(400)
+        return  res.json({ error : "Empty credentials"  , users : Object.values(users) }).status(400)
     }
  
-    const user = passwords[name]
+    const user = users[name]
     if (!user) {
         return res.json({ error : "User does not exist !!!"})
     }
@@ -47,8 +48,8 @@ app.post("/api/login" , async (req, res) => {
       
       
       const sessionId = v4()
-      passwords[name]["session"] = sessionId
-      res.cookie("session", `${sessionId}` , { httpOnly : true } )
+      sessions[sessionId] = { name }
+      res.cookie("session", `${sessionId}` , { httpOnly : false , expires :  new Date(Date.now() + 10000)  } )
       return res.json({ success : "ok" })
 
         
@@ -57,6 +58,18 @@ app.post("/api/login" , async (req, res) => {
     }
 
 })
+
+// Only authenticated users
+app.get("/secret" , (req, res) => {
+    const sessionId = req.cookies.session
+    console.log(sessionId)
+    if (sessions[sessionId]){
+        const name = sessions[sessionId]["name"]
+        res.send(`<h1> User ${name} is authenticated</h1>`)
+    }
+    else res.send("<h1>Loggin first please</h1>")
+
+} )
 
 
 app.listen(PORT , () => {

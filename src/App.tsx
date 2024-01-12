@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { API } from "./utils/API"
 import clsx from "clsx"
+import Cookies from "js-cookie"
 
 interface Data {
   hashedPassword ? : string
@@ -14,7 +15,14 @@ type Page = "login" | "signUp"
 function App() {
   const [data , setData ] = useState<Data>({})
   const [page , setPage] = useState<Page>("signUp") 
-  const authenticated = true
+  const authenticated = Cookies.get("session")
+ 
+  function handleLogOut () {
+   console.log(Cookies.remove("session"))
+   location.reload()
+  
+  }
+ 
   return (
       <> 
        {/* AUTH */}
@@ -23,7 +31,9 @@ function App() {
           "text-red-700" :  !authenticated    })}>
         { authenticated ? "Your are authenticated with cookies and session id awesome!!" : "Hidden text for authenticated users" }
         </p> 
-       
+       <button 
+       onClick={handleLogOut}
+       className="bg-slate-900 px-6 py-2 rounded font-bold mr-6 mb-10 hover:bg-blue-800">Log out</button>
         <button 
           className={clsx("bg-slate-900 px-6 py-2 rounded font-bold hover:bg-blue-800" , {
             "bg-blue-800" :  page === "login"
