@@ -18,7 +18,7 @@ function App() {
   const authenticated = Cookies.get("session")
  
   function handleLogOut () {
-   console.log(Cookies.remove("session"))
+   Cookies.remove("session")
    location.reload()
   
   }
@@ -35,17 +35,21 @@ function App() {
        onClick={handleLogOut}
        className="bg-slate-900 px-6 py-2 rounded font-bold mr-6 mb-10 hover:bg-blue-800">Log out</button>
         <button 
-          className={clsx("bg-slate-900 px-6 py-2 rounded font-bold hover:bg-blue-800" , {
-            "bg-blue-800" :  page === "login"
+          className={clsx(" px-6 py-2 rounded font-bold hover:bg-blue-800" , {
+            "bg-blue-800" :  page === "login" ,
+            "bg-slate-900" :  page !== "login"
           })}  
           onClick={() => setPage("login")}>login
         </button>
-        <button  className={clsx("bg-slate-900 px-6 py-2 rounded font-bold ml-6 mb-10 hover:bg-blue-800" , {
-          "bg-blue-800" : page === "signUp"
+        <button  className={clsx(" px-6 py-2 rounded font-bold ml-6 mb-10 hover:bg-blue-800" , {
+          "bg-blue-800" : page === "signUp" ,
+          "bg-slate-900" : page !== "signUp"
         })}
           onClick={() => setPage("signUp")}>
             signUp
         </button>
+        <a className="ml-4 text-blue-500 underline underline-offset-4 hover:text-blue-400" 
+        href="http://localhost:3200/secret" target="_blank">Go to secret Page</a>
       
        <div className="flex">
           {page === "login" 

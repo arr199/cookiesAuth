@@ -3,6 +3,8 @@ import cors from "cors"
 import bcrypt from "bcryptjs"
 import  { v4 }  from "uuid"
 import cookieParser from "cookie-parser"
+import path from "path"
+import { fileURLToPath } from "url"
 
 const app = express()
 const PORT = process?.env.PORT ?? 3200
@@ -12,6 +14,8 @@ const sessions = {}
 app.use(cookieParser())
 app.use(express.json())
 app.use(cors({ credentials : true , origin : ["http://localhost:5173"] }))
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 app.post("/api/signUp" , async (req,res) => {
     const {  name , password   } = await req.body
@@ -49,11 +53,10 @@ app.post("/api/login" , async (req, res) => {
       
       const sessionId = v4()
       sessions[sessionId] = { name }
-      res.cookie("session", `${sessionId}` , { httpOnly : false , expires :  new Date(Date.now() + 10000)  } )
+      res.cookie("session", `${sessionId}` , { httpOnly : false , expires :  new Date(Date.now() + 1000000)  } )
       return res.json({ success : "ok" })
-
-        
-    }else {
+    }
+    else {
         return res.json({ error : "Password does not match" })
     }
 
@@ -64,11 +67,11 @@ app.get("/secret" , (req, res) => {
     const sessionId = req.cookies.session
     console.log(sessionId)
     if (sessions[sessionId]){
-        const name = sessions[sessionId]["name"]
-        res.send(`<h1> User ${name} is authenticated</h1>`)
+      
+        res.sendFile(path.join(__dirname , "index.html"))
+        return
     }
     else res.send("<h1>Loggin first please</h1>")
-
 } )
 
 
